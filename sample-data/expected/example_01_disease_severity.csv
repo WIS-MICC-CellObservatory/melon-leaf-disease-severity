@@ -1,7 +1,0 @@
-roi_name,leaf_pixels,label_2_pixels,label_2_pct,label_3_pixels,label_3_pct,label_1_pixels_inside_outline
-leaf_top_left,78707,2038,2.589,76208,96.825,461
-leaf_top_center,224760,118693,52.809,102929,45.795,3138
-leaf_top_right,312365,25257,8.086,261109,83.591,25999
-leaf_bottom_left,135449,27184,20.070,107910,79.668,355
-leaf_bottom_center,282714,92677,32.781,186133,65.838,3904
-leaf_bottom_right,310917,63041,20.276,212745,68.425,35131
