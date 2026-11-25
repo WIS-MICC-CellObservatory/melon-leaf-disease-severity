@@ -1,0 +1,7 @@
+roi_name,leaf_pixels,symptomatic_pixels,disease_severity_pct
+leaf_top_left,78707,76208,96.825
+leaf_top_center,224760,102929,45.795
+leaf_top_right,312365,261109,83.591
+leaf_bottom_left,135449,107910,79.668
+leaf_bottom_center,282714,186133,65.838
+leaf_bottom_right,310917,212745,68.425
