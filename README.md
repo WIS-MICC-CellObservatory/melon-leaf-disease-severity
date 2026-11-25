@@ -7,34 +7,40 @@ Companion to *Swarming bacteria drive opposing ecological outcomes in plant-path
 - *Paenibacillus glucanolyticus* promoted the spread of *Paracidovorax citrulli* on agar and melon leaves and increased disease severity. The non-motile `motB` mutant showed neither effect.
 - *Paenibacillus dendritiformis* showed antibacterial activity against *P. citrulli* and reduced disease severity in melon plants.
 
+
 ## Repository layout
 
-| Path | File to include |
+| Path | Contents |
 | --- | --- |
-| `README.md` | This guide. |
-| `macros/total_leaf_area.ijm` | `Recored for total leaf area.ijm.ijm` with a shortened filename and a single `.ijm` extension. |
-| `macros/disease_leaf_area.ijm` | `Recored for disease leaf area.ijm` with a shortened filename. |
-| `macros/disease_in_roi.ijm` | The separate **Disease in ROI** macro named in the analysis protocol. Add the exact version used for the study once recovered. |
-| `models/melon_leaf_pixel_classifier.ilp` | The trained ilastik Pixel Classification project used in the study. |
-| `sample-data/input/example_01.tif` | A representative cropped melon-leaf TIFF as supplied to ilastik, at the original analysis resolution. |
-| `sample-data/segmentation/example_01_segmentation.tif` | The corresponding ilastik **Simple Segmentation** TIFF used as Fiji input. |
-| `sample-data/rois/example_01_rois.zip` | The Fiji ROI Manager export with the verified outline of each leaf in that image. |
-| `sample-data/expected/example_01_disease_severity.csv` | The corresponding reference per-leaf results with leaf IDs matching the ROI names and a disease percentage column. |
-
-The two supplied macros are available for this layout. The trained project, matched example files, and separate ROI measurement macro still need to be added. The sample filenames above are suggested names. Keep the same sample ID across the paired files.
-
-## Requirements
-
-- [ilastik](https://www.ilastik.org/) for predicting the segmentation from a cropped leaf TIFF.
-- [Fiji](https://fiji.sc/) for working with the segmentation, leaf ROIs, and measurements. If running prediction from Fiji, install and configure the ilastik Fiji plugin.
+| `macros/total_leaf_area.ijm` | Fiji macro that thresholds the segmentation, fills holes, and adds candidate whole-leaf ROIs to the ROI Manager. |
+| `macros/disease_leaf_area.ijm` | Fiji macro that measures connected regions selected by the original disease threshold. |
+| `macros/disease_in_roi.ijm` | Original Fiji macro used to summarize thresholded regions within saved whole-leaf ROIs and export a CSV. The source file is named `disease_in_ROI.ijm`. |
+| `models/melon_leaf_pixel_classifier.ilp` | Trained ilastik Pixel Classification project to add. |
+| `sample-data/input/IMG_20220727_104114.jpg` | Photograph of the six sample leaves. |
+| `sample-data/segmentation/IMG_20220727_104114_segmentation.tif` | Matching ilastik label image used as Fiji input. |
+| `sample-data/rois/IMG_20220727_104114_rois.zip` | Six whole-leaf Fiji ROIs generated from the sample segmentation. |
+| `sample-data/qc/IMG_20220727_104114_label_check.csv` | Per-leaf counts and percentages for labels 2 and 3. Rows run left to right across the top row, then the bottom row. |
+| `sample-data/expected/IMG_20220727_104114_disease_severity.csv` | Reference CSV to add after confirming the disease label for this export and reproducing the six measurements in Fiji. |
 
 ## Workflow
 
-1. **Segment the image.** Open the trained `.ilp` project in ilastik and apply it to the cropped input TIFF through **Batch Processing**. The classifier was trained from manual pixel annotations for background, healthy tissue, and symptomatic tissue. Export **Simple Segmentation** as TIFF. To start at the Fiji step, open the supplied reference segmentation once it has been added. [ilastik Pixel Classification documentation](https://www.ilastik.org/documentation/pixelclassification/pixelclassification).
-2. **Define the whole-leaf ROIs.** Start with an empty Fiji ROI Manager and run `total_leaf_area.ijm` on a duplicate of the segmentation. It applies contrast normalization and a fixed threshold, fills holes in the binary mask, and adds connected regions that pass its size filter to the ROI Manager. Check that each ROI covers one whole leaf, separate touching leaves or remove artifacts when needed, and save the corrected ROIs as a ZIP. Use the reference ROI ZIP to check this step once it has been added.
-3. **Inspect the symptomatic mask.** Run `disease_leaf_area.ijm` on a fresh duplicate of the same segmentation with an empty ROI Manager. The macro uses contrast normalization and a fixed threshold to create a binary mask, then identifies and measures connected symptomatic regions. Check that the mask selects the symptomatic class in the reference image. Those region areas describe patches of symptoms.
-4. **Calculate one percentage per leaf.** The study protocol uses **Disease in ROI** with the original segmentation and the saved whole-leaf ROI ZIP to obtain `%Area`. For a manual check, use the verified, unthresholded binary symptom mask from step 3 with symptomatic pixels nonzero and all other pixels zero. Clear the ROI Manager, open the whole-leaf ROI ZIP on the matching mask, enable **Area fraction** in **Analyze → Set Measurements**, and measure all whole-leaf ROIs. Save the results as CSV. [ImageJ measurement documentation](https://imagej.net/ij/docs/guide/user-guide.pdf).
+### Segment a leaf image with ilastik
 
-**Disease severity (%) = 100 × symptomatic pixels within the leaf ROI / total pixels within the same ROI.**
+Open the trained `.ilp` project in [ilastik](https://www.ilastik.org/) and apply it to the leaf image using **Batch Processing**. The classifier was trained with manual pixel annotations for background, healthy tissue, and symptomatic tissue. Export **Simple Segmentation** as TIFF. For the six-leaf example, start with the supplied segmentation TIFF. [ilastik Pixel Classification guide](https://www.ilastik.org/documentation/pixelclassification/pixelclassification)
 
-The two supplied macros use fixed Fiji thresholds after contrast normalization (124–255 for total leaf area and 109–154 for symptomatic area). Check both masks against the reference segmentation with the original bit depth and analysis export settings. Confirm the Fiji and ilastik versions and segmentation export settings on the matched example before publishing. The separate ROI measurement macro and reference CSV are needed to verify that this workflow reproduces the study's reported per-leaf values.
+### Load or create the six leaf ROIs
+
+Open the segmentation TIFF in [Fiji](https://fiji.sc/) and load the sample ROI ZIP through **ROI Manager → More → Open**. Use **Show All** to check the outlines against the segmentation. To regenerate them, run `total_leaf_area.ijm` on a duplicate of the TIFF with an empty ROI Manager. Correct outlines if needed, select all six whole-leaf ROIs, and save them through **More → Save**.
+
+### Confirm the disease label and measure its area
+
+The recovered disease macros use a threshold of 109–154 after contrast normalization, which selects label 2 in this sample TIFF. The training protocol screenshot lists Disease as the third class, which suggests label 3. The visibly damaged top-left leaf contains 2.589% label 2 and 96.825% label 3. Confirm the label from the exact ilastik project used for the export and inspect the label overlay against the photograph. Use the label-check CSV to compare the measured percentages.
+
+1. Open the original segmentation TIFF and load the six whole-leaf ROIs.
+2. In **Image → Adjust → Threshold**, use **Set** to enter the confirmed disease label as both threshold bounds. Leave the threshold active.
+3. In **Analyze → Set Measurements**, enable **Area Fraction** and **Display Label**. Leave **Limit to Threshold** unchecked. Select the six whole-leaf ROIs and click **Measure** in the ROI Manager.
+4. Save the **Results** table as CSV. Use `%Area` for the disease percentage and compare it to the corresponding label column in the label-check CSV. [ImageJ measurement guide](https://imagej.net/ij/docs/guide/user-guide.pdf)
+
+**Disease severity (%) = 100 × symptomatic pixels within a leaf ROI / total pixels within that ROI.**
+
+To run the original `disease_in_roi.ijm` on this sample, update the input, output, and ROI paths and the ROI ZIP name, set the suffix to `.tif`, and remove the trailing semicolon from the `endsWith` conditional. Verify that its threshold selects the confirmed disease class and compare the macro's output with the direct ROI measurement.
